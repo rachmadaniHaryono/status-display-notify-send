@@ -40,6 +40,7 @@
 #   there's no `status_display_notify_send.__main__` in `sys.modules`.
 
 """Module that contains the command line application."""
+import typer
 import typing as T
 import sys
 import time
@@ -47,64 +48,39 @@ import subprocess
 from loguru import logger
 
 
-def print_usage():
-    """Display usage info and exit."""
-
-    print(" ##############################################################################")
-    print(" # cmus_desktop_notify.py: display song cmus is playing using notify-send.    #")
-    print(" # Copyright (C) 2011  Travis Poppe <tlp@lickwid.net>                         #")
-    print(" #                                                                            #")
-    print(" # Version: 2011.06.24                                                        #")
-    print(" #                                                                            #")
-    print(" # Tested on Ubuntu 11.04 with Unity window manager.                          #")
-    print(" # Requirements: libnotify-bin (notify-send); probably python 2.x.            #")
-    print(" ##############################################################################")
-    print(" # Usage:                                                                     #")
-    print(" #  1. Copy cmus_desktop_notify.py to ~/.cmus/ and make executable.           #")
-    print(" #  2. Create ~/.cmus/status_display_program.sh with these contents           #")
-    print(" #     and make executable (remove spaces and border):                        #")
-    print(" #                                                                            #")
-    print(" #     #!/bin/sh                                                              #")
-    print(' #     ~/.cmus/cmus_desktop_notify.py "$*" &                                  #')
-    print(" #                                                                            #")
-    print(" #  3. Set the status_display_program variable in cmus (with YOUR homedir!)   #")
-    print(" #                                                                            #")
-    print(" #     :set status_display_program=/home/user/.cmus/status_display_program.sh #")
-    print(" #                                                                            #")
-    print(" #  4. Enjoy desktop notifications from cmus! Be sure to :save.               #")
-    print(" ##############################################################################")
-    sys.exit(2)
+DEFAULT_CMUS_INFO = {
+    "status": "",
+    "file": "",
+    "artist": "",
+    "album": "",
+    "albumartist": "",
+    "musicbrainz_trackid": "",
+    "discnumber": "",
+    "tracknumber": "",
+    "title": "",
+    "date": "",
+    "duration": "",
+}
+__version__ = "2011.06.24"
 
 
-def status_data(item):
+def status_data(cmus_data: T.Optional[T.List[str]]) -> T.Dict[str, str]:
     """Return the requested cmus status data."""
 
     # We loop through cmus status data and use each of its known data
     # types as 'delimiters', collecting data until we reach one,
     # inserting it into the dictionary -- rinse and repeat.
 
-    # cmus helper script provides our data as argv[1].
-    cmus_data = sys.argv[1]
-
-    # Split the data into an easily-parsed list.
-    cmus_data = cmus_data.split()
+    if cmus_data is None:
+        # cmus helper script provides our data as argv[1].
+        # Split the data into an easily-parsed list.
+        cmus_data = sys.argv[1:]
 
     # Our temporary collector list.
     collector = []
 
     # Dictionary that will contain our parsed-out data.
-    cmus_info = {
-        "status": "",
-        "file": "",
-        "artist": "",
-        "album": "",
-        "discnumber": "",
-        "tracknumber": "",
-        "title": "",
-        "date": "",
-        "duration": "",
-    }
-
+    cmus_info = DEFAULT_CMUS_INFO.copy()
     # Loop through cmus data and write it to our dictionary.
     last_found = "status"
     for value in cmus_data:
@@ -118,29 +94,41 @@ def status_data(item):
                 collector = []
                 last_found = key
 
-    # Return whatever data main() requests.
-    return cmus_info[item]
+    return cmus_info
 
 
-def display_song():
+def version_callback(value: bool):
+    if value:
+        typer.echo(f"status-display-notify-send: {__version__}")
+        raise typer.Exit()
+
+
+def display_song(
+    args: T.List[str],
+    version: T.Optional[bool] = typer.Option(None, "--version", callback=version_callback),
+):
     """Display the song data using notify-send."""
-
+    logger.add("/tmp/status_display_notify_send.log")
+    logger.debug("args: {}", args)
+    logger.debug("version: {}", version if version else __version__)
+    data = status_data(cmus_data=args)
+    logger.debug("data: {}", data)
+    status_data_ = data.get
     # We only display a notification if something is playing.
-    if status_data("status") == "playing":
+    if status_data_("status", args) == "playing":
 
         # Check to see if title data exists before trying to display it.
         # Display "Unknown" otherwise.
-        if status_data("title") != "":
-            notify_summary = status_data("title")
-        else:
-            notify_summary = "Unknown"
+        title = status_data_("title")
+        notify_summary = title if title else "Unknown"
 
         # Check to see if album data exists before trying to
         # display it. Prevents "Artist, " if it's blank.
-        if status_data("album") != "":
-            notify_body = status_data("artist") + ", " + status_data("album")
-        else:
-            notify_body = status_data("artist")
+        album = status_data_("album")
+        artist = status_data_("artist")
+        notify_body = artist if artist else ""
+        if album:
+            notify_body += ", " + album
 
         # Create our temporary file if it doesn't exist yet.
         open("/tmp/cmus_desktop_last_track", "a").write("4")
@@ -159,10 +147,21 @@ def display_song():
         # elapsed since last track was chosen.
         if track_change_duration > 3:
             # Execute notify-send with our default song data.
-            subprocess.call('notify-send -u low -t 500 "' + notify_summary + '" "by ' + notify_body + ' "', shell=True)
+            call_args = [
+                "notify-send",
+                "-u",
+                "normal",
+                "-t",
+                "5000",
+                "--app-name=cmus",
+                notify_summary if notify_summary else "",
+                notify_body,
+            ]
+            logger.debug("call args: {}", call_args)
+            subprocess.call(call_args)
 
 
-def main(args: T.Optional[T.List[str]] = None):
+def main():
     """
     Run the main program.
 
@@ -171,16 +170,7 @@ def main(args: T.Optional[T.List[str]] = None):
     Arguments:
         args: Arguments passed from the command line.
     """
-    logger.add("/tmp/status_display_notify_send.log")
-    logger.debug("args: {args}", args=args)
-    try:
-        # See if script is being called by cmus before proceeding.
-        if not args:
-            print_usage()
-        elif args[0].startswith("status"):
-            display_song()
-    except Exception:
-        print_usage()
+    typer.run(display_song)
 
 
 if __name__ == "__main__":
