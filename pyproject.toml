@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "status-display-notify-send"
-version = "0.1.0"
+version = "2021.12.21"
 description = "display song cmus is playing using notify-send."
 authors = ["Travis Poppe <tlp@lickwid.net>"]
 license = "GNU General Public License v3.0"
@@ -14,6 +14,13 @@ homepage = "https://github.com/rachmadanHaryono/status-display-notify-send"
 keywords = []
 packages = [ { include = "status_display_notify_send", from = "src" } ]
 maintainers = ['Rachmadani Haryono <foreturiga@gmail.com>']
+
+[tool.commitizen]
+version = "2021.12.21"
+version_files = [
+    "src/status_display_notify_send/cli.py",
+    "pyproject.toml",
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"

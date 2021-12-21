@@ -3,7 +3,7 @@
 # cmus_desktop_notify.py: display song cmus is playing using notify-send.
 # Copyright (C) 2011  Travis Poppe <tlp@lickwid.net>
 #
-# Version 2011.06.24
+# Version 2011.7.0
 # http://tlp.lickwid.net/cmus_desktop_notify.py
 #
 # Usage: Run script for instructions.
@@ -61,7 +61,7 @@ DEFAULT_CMUS_INFO = {
     "date": "",
     "duration": "",
 }
-__version__ = "2011.06.24"
+__version__ = "2021.12.21"
 
 
 def status_data(cmus_data: T.Optional[T.List[str]]) -> T.Dict[str, str]:
