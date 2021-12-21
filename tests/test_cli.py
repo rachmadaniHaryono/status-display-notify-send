@@ -7,7 +7,8 @@ from status_display_notify_send import cli
 
 def test_main():
     """Basic CLI test."""
-    assert cli.main([]) == 0
+    with pytest.raises(SystemExit):
+        cli.main()
 
 
 def test_show_help(capsys):
@@ -18,6 +19,5 @@ def test_show_help(capsys):
         capsys: Pytest fixture to capture output.
     """
     with pytest.raises(SystemExit):
-        cli.main(["-h"])
-    captured = capsys.readouterr()
-    assert "status-display-notify-send" in captured.out
+        cli.main()
+    assert capsys.readouterr().out
