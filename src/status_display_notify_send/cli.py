@@ -171,6 +171,8 @@ def main(args: T.Optional[T.List[str]] = None):
     Arguments:
         args: Arguments passed from the command line.
     """
+    logger.add("/tmp/status_display_notify_send.log")
+    logger.debug("args: {args}", args=args)
     try:
         # See if script is being called by cmus before proceeding.
         if not args:
