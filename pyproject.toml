@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core @ git+https://github.com/python-poetry/poetry-core.git@master"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -13,10 +13,12 @@ repository = "https://github.com/rachmadanHaryono/status-display-notify-send"
 homepage = "https://github.com/rachmadanHaryono/status-display-notify-send"
 keywords = []
 packages = [ { include = "status_display_notify_send", from = "src" } ]
+maintainers = ['Rachmadani Haryono <foreturiga@gmail.com>']
 
 [tool.poetry.dependencies]
 python = "^3.6"
 loguru = "^0.5.3"
+typer = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 # formatting, quality, tests
