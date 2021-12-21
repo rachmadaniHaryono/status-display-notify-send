@@ -1,0 +1,19 @@
+# Changes here will be overwritten by Copier
+_commit: 0.3.2
+_src_path: /home/r3r/Documents/copier-poetry
+author_email: tlp@lickwid.net
+author_fullname: Travis Poppe
+author_username: null
+copyright_date: '2021'
+copyright_holder: Travis Poppe
+copyright_holder_email: tlp@lickwid.net
+copyright_license: GNU General Public License v3.0
+project_description: display song cmus is playing using notify-send.
+project_name: status-display-notify-send
+python_package_command_line_name: status-display-notify-send
+python_package_distribution_name: status-display-notify-send
+python_package_import_name: status_display_notify_send
+repository_name: status-display-notify-send
+repository_namespace: rachmadanHaryono
+repository_provider: github.com
+use_precommit: true
